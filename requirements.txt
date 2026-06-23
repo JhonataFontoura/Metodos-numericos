@@ -1,0 +1,2 @@
+# Projeto sem dependências externas obrigatórias.
+# Python 3.10+

@@ -1,0 +1,8 @@
+[project]
+name = "metodos-numericos-academico-pro"
+version = "1.0.0"
+description = "Sistema didático para resolver exercícios de métodos numéricos"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+package-dir = {"" = "src"}

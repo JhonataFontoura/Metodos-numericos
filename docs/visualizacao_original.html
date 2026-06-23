@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Completo de Métodos Numéricos</title>
+  <style>
+    :root{
+      --bg:#020617;--panel:#0f172a;--card:#111827;--soft:#1e293b;--text:#e5e7eb;
+      --muted:#94a3b8;--accent:#38bdf8;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;--border:#334155;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#1e293b,#020617 55%);color:var(--text)}
+    header{padding:28px 18px;text-align:center;border-bottom:1px solid var(--border);background:rgba(2,6,23,.9);position:sticky;top:0;z-index:20;backdrop-filter:blur(10px)}
+    h1{margin:0;color:var(--accent);font-size:30px}
+    header p{margin:8px 0 0;color:var(--muted)}
+    main{max-width:1280px;margin:0 auto;padding:22px}
+    .tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+    .tabs button{width:auto;padding:10px 14px;border:1px solid var(--border);border-radius:999px;background:var(--soft);color:var(--text);cursor:pointer}
+    .tabs button.active{background:linear-gradient(135deg,#0284c7,#22c55e);border:0;font-weight:bold}
+    .section{display:none}
+    .section.active{display:block}
+    .grid{display:grid;grid-template-columns:390px 1fr;gap:18px;align-items:start}
+    .card{background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(2,6,23,.98));border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.28);margin-bottom:18px}
+    h2{margin:0 0 12px;color:var(--accent);font-size:21px}
+    h3{color:#bfdbfe;margin-top:0}
+    label{display:block;margin:12px 0 6px;color:var(--muted);font-size:14px}
+    input,select,textarea,button{width:100%;border-radius:10px;border:1px solid var(--border);background:#020617;color:var(--text);padding:10px;font-size:15px;outline:none}
+    textarea{min-height:92px;font-family:Consolas,monospace}
+    input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+    button.action{margin-top:14px;border:0;background:linear-gradient(135deg,#0284c7,#22c55e);font-weight:bold;cursor:pointer}
+    button.secondary{margin-top:10px;background:#334155;cursor:pointer}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .hint{color:var(--muted);font-size:13px;line-height:1.45;margin-top:10px}
+    .out{background:#020617;border:1px solid var(--border);border-radius:12px;padding:14px;white-space:pre-wrap;line-height:1.45;overflow:auto}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+    th,td{border-bottom:1px solid var(--border);padding:9px;text-align:right}
+    th{background:#1e293b;color:var(--accent)}
+    td:first-child,th:first-child{text-align:center}
+    canvas{width:100%;height:420px;background:#020617;border:1px solid var(--border);border-radius:14px}
+    .ok{color:var(--ok);font-weight:bold}.bad{color:var(--bad);font-weight:bold}.warn{color:var(--warn);font-weight:bold}
+    .mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+    code{color:#bfdbfe}
+
+    .result-dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+    .result-card{background:#020617;border:1px solid var(--border);border-radius:14px;padding:14px}
+    .result-card .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .result-card .value{font-size:22px;color:var(--accent);font-weight:bold;word-break:break-word}
+    .result-card .small{font-size:14px;color:var(--text);line-height:1.45}
+    .steps{display:grid;gap:10px;margin-top:12px}
+    .step{background:#020617;border-left:4px solid var(--accent);border-radius:10px;padding:12px;line-height:1.45}
+    .formula-box{background:#020617;border:1px solid var(--border);border-radius:12px;padding:12px;color:#bfdbfe;font-family:Consolas,monospace;overflow:auto;margin:10px 0}
+    .matrix-wrap{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+    .matrix-card{background:#020617;border:1px solid var(--border);border-radius:14px;padding:12px;overflow:auto}
+    .matrix-title{color:var(--accent);font-weight:bold;margin-bottom:8px}
+    .badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#1e293b;border:1px solid var(--border);font-size:12px;color:var(--muted);margin:3px}
+    .big-result{font-size:28px;color:var(--ok);font-weight:bold}
+
+    @media(max-width:900px){.grid{grid-template-columns:1fr}header{position:static}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Sistema Completo de Métodos Numéricos</h1>
+  <p>Visualização web com análise de erros, equações não lineares, sistemas lineares, interpolação, integração e derivação.</p>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="active" onclick="tab('erros',this)">Análise de Erros</button>
+    <button onclick="tab('raizes',this)">Equações Não Lineares</button>
+    <button onclick="tab('lineares',this)">Sistemas Lineares</button>
+    <button onclick="tab('interp',this)">Interpolação</button>
+    <button onclick="tab('integ',this)">Integração e Derivação</button>
+    <button onclick="tab('ajuda',this)">Ajuda de Funções</button>
+  </div>
+
+  <section id="erros" class="section active">
+    <div class="grid">
+      <div class="card">
+        <h2>Análise de Erros</h2>
+        <label>Método</label>
+        <select id="erroMetodo">
+          <option value="abs">Erro absoluto</option>
+          <option value="rel">Erro relativo</option>
+          <option value="max">Máximo erro relativo de arredondamento</option>
+          <option value="prop">Proporção de erro</option>
+          <option value="mmc">MMC/MDC e fatoração</option>
+          <option value="frac">Operações com frações</option>
+          <option value="fluxo">Underflow/Overflow</option>
+        </select>
+        <label>Valor exato</label><input id="exato" value="1">
+        <label>Valor aproximado</label><input id="aprox" value="0.999">
+        <div class="row">
+          <div><label>Base</label><input id="base" value="10"></div>
+          <div><label>Mantissa</label><input id="mantissa" value="4"></div>
+        </div>
+        <label>Números para MMC/MDC</label><input id="nums" value="188770000 2000">
+        <label>Fração 1</label><input id="f1" value="9383/188770000">
+        <label>Fração 2</label><input id="f2" value="1/2000">
+        <label>Operação de frações</label>
+        <select id="fracOp"><option value="+">Soma</option><option value="-">Subtração</option><option value="*">Multiplicação</option><option value="/">Divisão</option></select>
+        <div class="row">
+          <div><label>Menor representável</label><input id="menor" value="0.001"></div>
+          <div><label>Maior representável</label><input id="maior" value="1000"></div>
+        </div>
+        <label>Valor calculado</label><input id="valorFluxo" value="0.00001">
+        <button class="action" onclick="executarErros()">Calcular</button>
+      </div>
+      <div class="card">
+        <h2>Resultado</h2>
+        <div id="erroOut" class="out">Aguardando cálculo...</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="raizes" class="section">
+    <div class="grid">
+      <div class="card">
+        <h2>Equações Não Lineares</h2>
+        <label>Método</label>
+        <select id="metodoRaiz" onchange="toggleG()">
+          <option value="bissecao">Bisseção</option>
+          <option value="falsa">Falsa Posição</option>
+          <option value="newton">Newton-Raphson</option>
+          <option value="secantes">Secantes</option>
+          <option value="ponto">Ponto Fixo</option>
+        </select>
+        <label>f(x)</label><input id="func" value="x^3 - x - 2">
+        <div id="gBox" style="display:none">
+          <label>g(x), para x = g(x)</label><input id="gfunc" value="(x+2)^(1/3)">
+        </div>
+        <div class="row"><div><label>a / x0</label><input id="a" value="1"></div><div><label>b / x1</label><input id="b" value="2"></div></div>
+        <div class="row"><div><label>Tolerância |f(x)|</label><input id="tolFx" value="0.0001"></div><div><label>Tolerância erro</label><input id="tolErro" value="0.0001"></div></div>
+        <div class="row"><div><label>Máx. iterações</label><input id="maxIt" value="50"></div><div><label>Alcance gráfico</label><input id="range" value="5"></div></div>
+        <button class="action" onclick="executarRaiz()">Executar</button>
+        <button class="secondary" onclick="desenharGrafico()">Desenhar gráfico</button>
+      </div>
+      <div class="card">
+        <h2>Gráfico</h2>
+        <canvas id="grafico" width="900" height="420"></canvas>
+        <div id="raizResumo" class="out" style="margin-top:12px">Aguardando execução...</div>
+      </div>
+    </div>
+    <div class="card"><h2>Tabela de Iterações</h2><div id="raizTabela"></div></div>
+  </section>
+
+  <section id="lineares" class="section">
+    <div class="grid">
+      <div class="card">
+        <h2>Sistemas Lineares</h2>
+        <label>Método</label>
+        <select id="metodoLin">
+          <option value="gauss">Eliminação de Gauss</option>
+          <option value="lu">Decomposição LU</option>
+          <option value="jacobi">Gauss-Jacobi</option>
+          <option value="seidel">Gauss-Seidel</option>
+          <option value="cholesky">Cholesky</option>
+        </select>
+        <label>Matriz A, uma linha por vez, valores separados por espaço</label>
+        <textarea id="matA">2 1 -1
+-3 -1 2
+-2 1 2</textarea>
+        <label>Vetor b, valores separados por espaço</label><input id="vetB" value="8 -11 -3">
+        <label>Chute inicial, para Jacobi/Seidel</label><input id="chute" value="0 0 0">
+        <div class="row"><div><label>Tolerância</label><input id="tolLin" value="0.0001"></div><div><label>Máx. iterações</label><input id="maxLin" value="50"></div></div>
+        <button class="action" onclick="executarLinear()">Resolver sistema</button>
+      </div>
+      <div class="card">
+        <h2>Resultado do sistema</h2>
+        <div id="linOut" class="out">Aguardando cálculo...</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="interp" class="section">
+    <div class="grid">
+      <div class="card">
+        <h2>Interpolação</h2>
+        <label>Método</label>
+        <select id="metodoInterp">
+          <option value="lagrange">Lagrange</option>
+          <option value="newtonInterp">Newton - Diferenças Divididas</option>
+        </select>
+        <label>Pontos x, separados por espaço</label><input id="xs" value="1 2 4">
+        <label>Pontos y, separados por espaço</label><input id="ys" value="2 3 5">
+        <label>Valor de x para interpolar</label><input id="xInterp" value="3">
+        <button class="action" onclick="executarInterp()">Interpolar</button>
+      </div>
+      <div class="card">
+        <h2>Resultado da interpolação</h2>
+        <div id="interpOut" class="out">Aguardando cálculo...</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="integ" class="section">
+    <div class="grid">
+      <div class="card">
+        <h2>Integração e Derivação</h2>
+        <label>Método</label>
+        <select id="metodoID">
+          <option value="trap">Regra dos Trapézios</option>
+          <option value="simp">Simpson 1/3</option>
+          <option value="deriv">Derivação Numérica</option>
+        </select>
+        <label>f(x)</label><input id="funcID" value="x^2">
+        <div class="row"><div><label>a</label><input id="ia" value="0"></div><div><label>b</label><input id="ib" value="2"></div></div>
+        <div class="row"><div><label>n subintervalos</label><input id="in" value="4"></div><div><label>h derivada</label><input id="hder" value="0.001"></div></div>
+        <label>x para derivar</label><input id="xder" value="2">
+        <label>Tipo de derivada</label>
+        <select id="tipoDer"><option value="prog">Progressiva</option><option value="reg">Regressiva</option><option value="cent">Central</option><option value="seg">Segunda derivada central</option></select>
+        <button class="action" onclick="executarID()">Calcular</button>
+      </div>
+      <div class="card">
+        <h2>Resultado</h2>
+        <div id="idOut" class="out">Aguardando cálculo...</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ajuda" class="section">
+    <div class="card">
+      <h2>Ajuda para digitar funções</h2>
+      <div class="mini-grid">
+        <div class="card"><h3>Potência</h3><code>x^3</code><br><code>x³</code><br><code>x**3</code></div>
+        <div class="card"><h3>Trigonometria</h3><code>sen(x)</code><br><code>cos(x)</code><br><code>tg(x)</code></div>
+        <div class="card"><h3>Raiz e log</h3><code>raiz(x)</code><br><code>√x</code><br><code>ln(x)</code><br><code>log10(x)</code></div>
+        <div class="card"><h3>Exponencial</h3><code>e^x</code><br><code>exp(x)</code></div>
+        <div class="card"><h3>Multiplicação implícita</h3><code>2x+3</code><br><code>3(x+1)</code></div>
+        <div class="card"><h3>Constantes</h3><code>pi</code><br><code>e</code></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+function tab(id,btn){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function val(id){return parseFloat(document.getElementById(id).value.replace(',','.'));}
+function nums(id){return document.getElementById(id).value.trim().split(/\s+/).filter(Boolean).map(Number);}
+function normalizar(expr){
+  expr=expr.trim().replaceAll(',','.');
+  const exp={"²":"**2","³":"**3","⁴":"**4","⁵":"**5","⁶":"**6","⁷":"**7","⁸":"**8","⁹":"**9","¹":"**1","⁰":"**0"};
+  Object.entries(exp).forEach(([a,b])=>expr=expr.split(a).join(b));
+  expr=expr.replace(/√\(([^\)]+)\)/g,"sqrt($1)").replace(/√([a-zA-Z0-9\.]+)/g,"sqrt($1)").replace(/\^/g,"**");
+  expr=expr.replace(/\bsen\b/gi,"sin").replace(/\btg\b/gi,"tan").replace(/\braiz\b/gi,"sqrt").replace(/\bln\b/gi,"log");
+  expr=expr.replace(/\be\*\*\(([^\)]+)\)/g,"exp($1)").replace(/\be\*\*([a-zA-Z0-9\.]+)/g,"exp($1)");
+  expr=expr.replace(/(\d)(x)/g,"$1*$2").replace(/(x)(\d)/g,"$1*$2").replace(/(\d)\(/g,"$1*(").replace(/\)(\d)/g,")*$1").replace(/(x)\(/g,"$1*(").replace(/\)(x)/g,")*$1");
+  ["sin","cos","tan","asin","acos","atan","sqrt","log","log10","exp","abs"].forEach(fn=>expr=expr.replaceAll(fn+"*(",fn+"("));
+  return expr;
+}
+function criarFuncao(expr){
+  const n=normalizar(expr);
+  const fn=new Function("x","sin","cos","tan","asin","acos","atan","exp","log","log10","sqrt","abs","pi","e","return "+n+";");
+  return {normalizada:n,calc:x=>fn(x,Math.sin,Math.cos,Math.tan,Math.asin,Math.acos,Math.atan,Math.exp,Math.log,Math.log10,Math.sqrt,Math.abs,Math.PI,Math.E)};
+}
+function mdc2(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
+function mmc2(a,b){return Math.abs(a*b)/mdc2(a,b)}
+function fatorar(n){n=Math.abs(Math.trunc(n));if(n<2)return String(n);let d=2,arr=[];while(d*d<=n){let c=0;while(n%d===0){c++;n/=d}if(c)arr.push(c>1?`${d}^${c}`:`${d}`);d++}if(n>1)arr.push(String(n));return arr.join(' × ')}
+function fracParse(s){let [a,b]=s.split('/').map(Number);if(!b)b=1;return [a,b]}
+
+function card(label,value,extra=''){
+  return `<div class="result-card"><div class="label">${label}</div><div class="value">${value}</div>${extra?`<div class="small">${extra}</div>`:''}</div>`;
+}
+function step(txt){return `<div class="step">${txt}</div>`}
+function formula(txt){return `<div class="formula-box">${txt}</div>`}
+function renderTable(rows){
+  if(!rows||!rows.length)return '';
+  let ks=Object.keys(rows[0]);
+  let h='<table><thead><tr>'+ks.map(k=>`<th>${k}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{
+    h+='<tr>'+ks.map(k=>{
+      let v=r[k];
+      if(typeof v==='number') v=Number.isInteger(v)?v:v.toFixed(8);
+      return `<td>${v}</td>`;
+    }).join('')+'</tr>';
+  });
+  return h+'</tbody></table>';
+}
+function matrixHTML(M,title='Matriz'){
+  let h=`<div class="matrix-card"><div class="matrix-title">${title}</div><table>`;
+  M.forEach(row=>{h+='<tr>'+row.map(v=>`<td>${typeof v==='number'?v.toFixed(6):v}</td>`).join('')+'</tr>'});
+  return h+'</table></div>';
+}
+function vectorHTML(v,title='Vetor'){
+  return `<div class="matrix-card"><div class="matrix-title">${title}</div><table>`+
+    v.map((x,i)=>`<tr><th>x${i+1}</th><td>${typeof x==='number'?x.toFixed(8):x}</td></tr>`).join('')+
+    '</table></div>';
+}
+function executarErros(){
+  const op=document.getElementById('erroMetodo').value;
+  const ex=Number(document.getElementById('exato').value), ap=Number(document.getElementById('aprox').value);
+  let htmlOut='';
+
+  if(op==='abs'){
+    const r=Math.abs(ex-ap);
+    htmlOut = `<div class="result-dashboard">${card('Erro absoluto',r)}</div>`+
+      formula(`E_a = |valor exato - valor aproximado|`)+
+      `<div class="steps">${step(`E_a = |${ex} - ${ap}|`)}${step(`E_a = |${ex-ap}| = <span class="ok">${r}</span>`)}</div>`;
+  }
+
+  if(op==='rel'){
+    if(ex===ap){
+      htmlOut = `<div class="result-dashboard">${card('Erro relativo','0','Valor exatamente representado')}</div>`;
+    }else if(ex===0){
+      htmlOut = `<div class="result-dashboard">${card('Erro relativo','Indefinido','Valor exato igual a zero')}</div>`;
+    }else{
+      const ea=Math.abs(ex-ap), er=ea/Math.abs(ex);
+      htmlOut = `<div class="result-dashboard">${card('Erro absoluto',ea)}${card('Erro relativo',er)}${card('Percentual',(er*100).toFixed(8)+'%')}</div>`+
+        formula(`E_r = |valor exato - valor aproximado| / |valor exato|`)+
+        `<div class="steps">${step(`E_r = |${ex} - ${ap}| / |${ex}|`)}${step(`E_r = ${ea} / ${Math.abs(ex)} = <span class="ok">${er}</span>`)}</div>`;
+    }
+  }
+
+  if(op==='max'){
+    const b=val('base'),m=val('mantissa'),eps=(b/2)*Math.pow(b,-m);
+    htmlOut = `<div class="result-dashboard">${card('Base',b)}${card('Mantissa',m)}${card('Máximo erro relativo',eps)}</div>`+
+      formula(`ε = (base / 2) × base^(-mantissa)`)+
+      `<div class="steps">${step(`ε = (${b}/2) × ${b}<sup>-${m}</sup>`)}${step(`ε = <span class="ok">${eps}</span>`)}</div>`;
+  }
+
+  if(op==='prop'){
+    if(ex===0){
+      htmlOut = `<div class="result-dashboard">${card('Proporção','Indefinida','Valor exato igual a zero')}</div>`;
+    }else{
+      const ea=Math.abs(ex-ap), p=ea/Math.abs(ex);
+      htmlOut = `<div class="result-dashboard">${card('Erro absoluto',ea)}${card('Proporção',p)}${card('Percentual',(p*100).toFixed(8)+'%')}</div>`+
+        formula(`Proporção = erro absoluto / |valor exato|`)+
+        `<div class="steps">${step(`Proporção = ${ea} / |${ex}|`)}${step(`Proporção = <span class="ok">${p}</span>`)}</div>`;
+    }
+  }
+
+  if(op==='mmc'){
+    let ns=nums('nums');
+    let mdc=ns.reduce((a,b)=>mdc2(a,b));
+    let mmc=ns.reduce((a,b)=>mmc2(a,b));
+    let rows=ns.map(n=>({Número:n,Fatoração:fatorar(n)}));
+    htmlOut = `<div class="result-dashboard">${card('MDC',mdc,`Fatoração: ${fatorar(mdc)}`)}${card('MMC',mmc,`Fatoração: ${fatorar(mmc)}`)}</div>`+
+      `<h3>Fatoração dos números</h3>${renderTable(rows)}`+
+      `<div class="steps">${step('O MDC usa apenas fatores comuns com os menores expoentes.')}${step('O MMC usa todos os fatores primos com os maiores expoentes.')}</div>`;
+  }
+
+  if(op==='frac'){
+    let [n1,d1]=fracParse(document.getElementById('f1').value),[n2,d2]=fracParse(document.getElementById('f2').value),o=document.getElementById('fracOp').value,num,den,desenvolvimento='';
+    if(o==='+'){let mmc=mmc2(d1,d2);num=n1*(mmc/d1)+n2*(mmc/d2);den=mmc;desenvolvimento=`MMC(${d1}, ${d2}) = ${mmc}<br>Resultado bruto = ${num}/${den}`}
+    else if(o==='-'){let mmc=mmc2(d1,d2);num=n1*(mmc/d1)-n2*(mmc/d2);den=mmc;desenvolvimento=`MMC(${d1}, ${d2}) = ${mmc}<br>Resultado bruto = ${num}/${den}`}
+    else if(o==='*'){num=n1*n2;den=d1*d2;desenvolvimento=`Resultado bruto = (${n1}×${n2})/(${d1}×${d2}) = ${num}/${den}`}
+    else{num=n1*d2;den=d1*n2;desenvolvimento=`Resultado bruto = (${n1}×${d2})/(${d1}×${n2}) = ${num}/${den}`}
+    let g=mdc2(num,den), sn=num/g, sd=den/g;
+    htmlOut = `<div class="result-dashboard">${card('Resultado simplificado',`${sn}/${sd}`)}${card('Decimal',sn/sd)}${card('MDC da simplificação',g)}</div>`+
+      `<div class="steps">${step(desenvolvimento)}${step(`MDC(${Math.abs(num)}, ${Math.abs(den)}) = ${g}`)}${step(`${num}/${den} ÷ ${g} = <span class="ok">${sn}/${sd}</span>`)}</div>`;
+  }
+
+  if(op==='fluxo'){
+    let v=val('valorFluxo'),men=val('menor'),mai=val('maior');
+    let status, classe, explicacao;
+    if(Math.abs(v)>mai){status='Overflow detectado';classe='bad';explicacao=`|${v}| > ${mai}`;}
+    else if(v!==0&&Math.abs(v)<men){status='Underflow detectado';classe='warn';explicacao=`0 < |${v}| < ${men}`;}
+    else{status='Valor representável';classe='ok';explicacao=`${men} ≤ |${v}| ≤ ${mai}, ou valor igual a zero.`;}
+    htmlOut = `<div class="result-dashboard">${card('Status',`<span class="${classe}">${status}</span>`)}${card('Valor analisado',v)}${card('Intervalo permitido',`${men} até ${mai}`)}</div>`+
+      `<div class="steps">${step(explicacao)}</div>`;
+  }
+
+  document.getElementById('erroOut').innerHTML=htmlOut;
+}
+function table(rows){if(!rows||!rows.length)return'';let ks=Object.keys(rows[0]),h='<table><thead><tr>'+ks.map(k=>`<th>${k}</th>`).join('')+'</tr></thead><tbody>';rows.forEach(r=>{h+='<tr>'+ks.map(k=>`<td>${typeof r[k]==='number'?r[k].toFixed(8):r[k]}</td>`).join('')+'</tr>'});return h+'</tbody></table>'}
+function toggleG(){document.getElementById('gBox').style.display=document.getElementById('metodoRaiz').value==='ponto'?'block':'none'}
+function desenharGrafico(pontos=[]){
+  const c=document.getElementById('grafico'),ctx=c.getContext('2d'),W=c.width,H=c.height;ctx.clearRect(0,0,W,H);
+  let f;try{f=criarFuncao(document.getElementById('func').value)}catch(e){return}
+  let r=val('range')||5,xmin=-r,xmax=r,ymin=-r,ymax=r,mx=x=>((x-xmin)/(xmax-xmin))*W,my=y=>H-((y-ymin)/(ymax-ymin))*H;
+  ctx.strokeStyle='#334155';for(let i=-r;i<=r;i++){ctx.beginPath();ctx.moveTo(mx(i),0);ctx.lineTo(mx(i),H);ctx.stroke();ctx.beginPath();ctx.moveTo(0,my(i));ctx.lineTo(W,my(i));ctx.stroke()}
+  ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mx(0),0);ctx.lineTo(mx(0),H);ctx.stroke();ctx.beginPath();ctx.moveTo(0,my(0));ctx.lineTo(W,my(0));ctx.stroke();
+  ctx.strokeStyle='#38bdf8';ctx.lineWidth=3;ctx.beginPath();let started=false;for(let px=0;px<=W;px++){let x=xmin+(px/W)*(xmax-xmin),y;try{y=f.calc(x)}catch{started=false;continue}if(!isFinite(y)||Math.abs(y)>1e6){started=false;continue}let py=my(y);if(!started){ctx.moveTo(px,py);started=true}else ctx.lineTo(px,py)}ctx.stroke();
+  ctx.fillStyle='#22c55e';pontos.forEach(p=>{let px=mx(p),py=my(f.calc(p));ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill()})
+}
+function executarRaiz(){
+  let f=criarFuncao(document.getElementById('func').value),m=document.getElementById('metodoRaiz').value,a=val('a'),b=val('b'),tf=val('tolFx'),te=val('tolErro'),mi=parseInt(document.getElementById('maxIt').value),rows=[],raiz=a;
+  if(m==='bissecao'||m==='falsa'){if(f.calc(a)*f.calc(b)>0){document.getElementById('raizResumo').textContent='f(a)×f(b)>0. Não há garantia de raiz.';return}}
+  if(m==='bissecao'){for(let i=1;i<=mi;i++){let x=(a+b)/2,fx=f.calc(x);rows.push({i,a,b,xm:x,'f(xm)':fx,'|f(xm)|':Math.abs(fx)});raiz=x;if(Math.abs(fx)<=tf||Math.abs(b-a)<=te)break;if(f.calc(a)*fx<0)b=x;else a=x}}
+  if(m==='falsa'){let xa=null;for(let i=1;i<=mi;i++){let fa=f.calc(a),fb=f.calc(b),x=(a*fb-b*fa)/(fb-fa),fx=f.calc(x),er=xa===null?0:Math.abs(x-xa);rows.push({i,a,b,x,'f(x)':fx,erro:er});raiz=x;if(Math.abs(fx)<=tf||(xa!==null&&er<=te))break;if(fa*fx<0)b=x;else a=x;xa=x}}
+  if(m==='newton'){for(let i=1;i<=mi;i++){let fx=f.calc(a),df=(f.calc(a+1e-6)-f.calc(a-1e-6))/(2e-6),xn=a-fx/df,er=Math.abs(xn-a);rows.push({i,x:a,'f(x)':fx,"f'(x)":df,xn,erro:er});raiz=xn;if(Math.abs(f.calc(xn))<=tf||er<=te)break;a=xn}}
+  if(m==='secantes'){let x0=a,x1=b;for(let i=1;i<=mi;i++){let fx0=f.calc(x0),fx1=f.calc(x1),x2=(x0*fx1-x1*fx0)/(fx1-fx0),fx2=f.calc(x2),er=Math.abs(x2-x1);rows.push({i,x0,x1,x2,'f(x2)':fx2,erro:er});raiz=x2;if(Math.abs(fx2)<=tf||er<=te)break;x0=x1;x1=x2}}
+  if(m==='ponto'){let g=criarFuncao(document.getElementById('gfunc').value),x=a;for(let i=1;i<=mi;i++){let xn=g.calc(x),er=Math.abs(xn-x),t=i===1?'inicial':(er<rows[rows.length-1].erro?'convergindo':'divergindo');rows.push({i,x,xn,erro:er,tendencia:t});raiz=xn;if(er<=te)break;x=xn}}
+  document.getElementById('raizResumo').textContent=`Função interpretada: ${f.normalizada}\nAproximação: ${raiz}\nControle f(aprox) = ${f.calc(raiz)}`;
+  document.getElementById('raizTabela').innerHTML=table(rows);desenharGrafico(rows.map(r=>r.xm??r.x??r.xn??r.x2));
+}
+function parseA(){return document.getElementById('matA').value.trim().split('\n').map(l=>l.trim().split(/\s+/).map(Number))}
+
+function executarLinear(){
+  let A=parseA(),b=nums('vetB'),m=document.getElementById('metodoLin').value;
+  let htmlOut='';
+  if(m==='gauss'||m==='lu'||m==='cholesky'){
+    htmlOut=resolverGaussVisual(A,b,m);
+  }else{
+    htmlOut=iterativoVisual(A,b,m);
+  }
+  document.getElementById('linOut').innerHTML=htmlOut;
+}
+function resolverGaussVisual(A,b,metodo){
+  let n=A.length,M=A.map((r,i)=>r.slice().concat(b[i])),steps=[];
+  const nome = metodo==='lu'?'Decomposição LU':metodo==='cholesky'?'Cholesky':'Eliminação de Gauss';
+  steps.push(`Método selecionado: <strong>${nome}</strong>`);
+  for(let k=0;k<n-1;k++){
+    if(Math.abs(M[k][k])<1e-12){
+      for(let i=k+1;i<n;i++){
+        if(Math.abs(M[i][k])>1e-12){
+          [M[k],M[i]]=[M[i],M[k]];
+          steps.push(`Troca de linhas: L${k+1} ↔ L${i+1}`);
+          break;
+        }
+      }
+    }
+    for(let i=k+1;i<n;i++){
+      let mult=M[i][k]/M[k][k];
+      steps.push(`Multiplicador m${i+1}${k+1} = ${M[i][k].toFixed(6)} / ${M[k][k].toFixed(6)} = ${mult.toFixed(6)}`);
+      for(let j=k;j<=n;j++)M[i][j]-=mult*M[k][j];
+    }
+  }
+  let x=Array(n).fill(0);
+  for(let i=n-1;i>=0;i--){
+    let s=0;for(let j=i+1;j<n;j++)s+=M[i][j]*x[j];
+    x[i]=(M[i][n]-s)/M[i][i];
+    steps.push(`x${i+1} = (${M[i][n].toFixed(6)} - ${s.toFixed(6)}) / ${M[i][i].toFixed(6)} = ${x[i].toFixed(8)}`);
+  }
+  return `<div class="result-dashboard">${x.map((v,i)=>card(`x${i+1}`,v.toFixed(8))).join('')}</div>`+
+    `<div class="matrix-wrap">${matrixHTML(A,'Matriz A')}${vectorHTML(b,'Vetor b')}${matrixHTML(M,'Matriz triangular aumentada')}</div>`+
+    `<h3>Desenvolvimento</h3><div class="steps">${steps.map(step).join('')}</div>`;
+}
+function iterativoVisual(A,b,met){
+  let n=A.length,x=nums('chute'),tol=val('tolLin'),max=parseInt(document.getElementById('maxLin').value),rows=[],steps=[];
+  const nome = met==='jacobi'?'Gauss-Jacobi':'Gauss-Seidel';
+  steps.push(`Método selecionado: <strong>${nome}</strong>`);
+  steps.push(`Critério de parada: erro máximo ≤ ${tol}`);
+  for(let it=1;it<=max;it++){
+    let old=x.slice(),xn=met==='jacobi'?Array(n).fill(0):x.slice();
+    for(let i=0;i<n;i++){
+      let s=0;
+      for(let j=0;j<n;j++){
+        if(j!==i)s+=A[i][j]*(met==='jacobi'?old[j]:xn[j]);
+      }
+      xn[i]=(b[i]-s)/A[i][i];
+    }
+    let err=Math.max(...xn.map((v,i)=>Math.abs(v-old[i])));
+    let row={Iteração:it};
+    xn.forEach((v,i)=>row[`x${i+1}`]=v);
+    row.erro=err;
+    rows.push(row);
+    x=xn;
+    if(err<=tol)break;
+  }
+  return `<div class="result-dashboard">${x.map((v,i)=>card(`x${i+1}`,v.toFixed(8))).join('')}${card('Iterações',rows.length)}${card('Erro final',rows[rows.length-1].erro.toFixed(8))}</div>`+
+    `<div class="matrix-wrap">${matrixHTML(A,'Matriz A')}${vectorHTML(b,'Vetor b')}</div>`+
+    `<h3>Tabela de iterações</h3>${renderTable(rows)}`+
+    `<h3>Resumo</h3><div class="steps">${steps.map(step).join('')}</div>`;
+}
+
+function executarInterp(){
+  let xs=nums('xs'),ys=nums('ys'),x=val('xInterp'),m=document.getElementById('metodoInterp').value;
+  let htmlOut='';
+  if(m==='lagrange'){
+    let res=0, rows=[], steps=[];
+    for(let i=0;i<xs.length;i++){
+      let L=1, fatores=[];
+      for(let j=0;j<xs.length;j++){
+        if(i!==j){
+          let fator=(x-xs[j])/(xs[i]-xs[j]);
+          L*=fator;
+          fatores.push(`(${x} - ${xs[j]}) / (${xs[i]} - ${xs[j]}) = ${fator.toFixed(8)}`);
+        }
+      }
+      let termo=ys[i]*L;
+      res+=termo;
+      rows.push({i,xi:xs[i],yi:ys[i],Li:L,termo});
+      steps.push(`<strong>L${i}(x)</strong><br>${fatores.join('<br>')}<br>y${i}×L${i} = ${ys[i]} × ${L.toFixed(8)} = ${termo.toFixed(8)}`);
+    }
+    htmlOut=`<div class="result-dashboard">${card(`P(${x})`,res.toFixed(8))}${card('Método','Lagrange')}${card('Pontos usados',xs.length)}</div>`+
+      formula('P(x) = Σ yᵢ · Lᵢ(x)')+
+      `<h3>Tabela dos termos</h3>${renderTable(rows)}`+
+      `<h3>Desenvolvimento</h3><div class="steps">${steps.map(step).join('')}</div>`;
+  }else{
+    let n=xs.length,t=Array.from({length:n},()=>Array(n).fill(0));
+    for(let i=0;i<n;i++)t[i][0]=ys[i];
+    let steps=[];
+    for(let j=1;j<n;j++){
+      for(let i=0;i<n-j;i++){
+        t[i][j]=(t[i+1][j-1]-t[i][j-1])/(xs[i+j]-xs[i]);
+        steps.push(`f[x${i},...,x${i+j}] = (${t[i+1][j-1].toFixed(8)} - ${t[i][j-1].toFixed(8)}) / (${xs[i+j]} - ${xs[i]}) = ${t[i][j].toFixed(8)}`);
+      }
+    }
+    let res=t[0][0],prod=1,termos=[{termo:'a0',valor:t[0][0]}];
+    for(let j=1;j<n;j++){
+      prod*=x-xs[j-1];
+      let termo=t[0][j]*prod;
+      res+=termo;
+      termos.push({termo:`a${j} produto`,coeficiente:t[0][j],produto,valor:termo});
+    }
+    htmlOut=`<div class="result-dashboard">${card(`P(${x})`,res.toFixed(8))}${card('Método','Newton')}${card('Pontos usados',n)}</div>`+
+      formula('P(x)=f[x₀]+f[x₀,x₁](x-x₀)+f[x₀,x₁,x₂](x-x₀)(x-x₁)+...')+
+      `<h3>Tabela de diferenças divididas</h3>${matrixHTML(t,'Diferenças divididas')}`+
+      `<h3>Termos do polinômio</h3>${renderTable(termos)}`+
+      `<h3>Cálculo sistemático</h3><div class="steps">${steps.map(step).join('')}</div>`;
+  }
+  document.getElementById('interpOut').innerHTML=htmlOut;
+}
+
+function executarID(){
+  let m=document.getElementById('metodoID').value,f=criarFuncao(document.getElementById('funcID').value),a=val('ia'),b=val('ib'),n=parseInt(document.getElementById('in').value),htmlOut='';
+  if(m==='trap'){
+    let h=(b-a)/n,s=f.calc(a)+f.calc(b),rows=[{i:0,x:a,'f(x)':f.calc(a),peso:1,contribuição:f.calc(a)}];
+    for(let i=1;i<n;i++){
+      let xi=a+i*h,fx=f.calc(xi);
+      rows.push({i,x:xi,'f(x)':fx,peso:2,contribuição:2*fx});
+      s+=2*fx;
+    }
+    rows.push({i:n,x:b,'f(x)':f.calc(b),peso:1,contribuição:f.calc(b)});
+    const res=(h/2)*s;
+    htmlOut=`<div class="result-dashboard">${card('Integral aproximada',res.toFixed(8))}${card('h',h.toFixed(8))}${card('Subintervalos',n)}</div>`+
+      formula('Integral ≈ h/2 · [f(x₀) + 2Σf(xᵢ) + f(xₙ)]')+
+      `<h3>Tabela de pontos</h3>${renderTable(rows)}`;
+  }
+  if(m==='simp'){
+    if(n%2!==0){
+      htmlOut=`<div class="result-dashboard">${card('Erro','n precisa ser par','Para Simpson 1/3 escolha número par de subintervalos.')}</div>`;
+    }else{
+      let h=(b-a)/n,s=f.calc(a)+f.calc(b),rows=[{i:0,x:a,'f(x)':f.calc(a),peso:1,contribuição:f.calc(a)}];
+      for(let i=1;i<n;i++){
+        let xi=a+i*h,fx=f.calc(xi),peso=i%2?4:2;
+        rows.push({i,x:xi,'f(x)':fx,peso,contribuição:peso*fx});
+        s+=peso*fx;
+      }
+      rows.push({i:n,x:b,'f(x)':f.calc(b),peso:1,contribuição:f.calc(b)});
+      const res=(h/3)*s;
+      htmlOut=`<div class="result-dashboard">${card('Integral aproximada',res.toFixed(8))}${card('h',h.toFixed(8))}${card('Subintervalos',n)}</div>`+
+        formula('Integral ≈ h/3 · [f(x₀) + 4Σf(x ímpares) + 2Σf(x pares) + f(xₙ)]')+
+        `<h3>Tabela de pontos</h3>${renderTable(rows)}`;
+    }
+  }
+  if(m==='deriv'){
+    let x=val('xder'),h=val('hder'),tipo=document.getElementById('tipoDer').value,r,form,steps=[];
+    if(tipo==='prog'){r=(f.calc(x+h)-f.calc(x))/h;form="f'(x) ≈ [f(x+h)-f(x)]/h";steps=[`f(${x+h})=${f.calc(x+h)}`,`f(${x})=${f.calc(x)}`]}
+    if(tipo==='reg'){r=(f.calc(x)-f.calc(x-h))/h;form="f'(x) ≈ [f(x)-f(x-h)]/h";steps=[`f(${x})=${f.calc(x)}`,`f(${x-h})=${f.calc(x-h)}`]}
+    if(tipo==='cent'){r=(f.calc(x+h)-f.calc(x-h))/(2*h);form="f'(x) ≈ [f(x+h)-f(x-h)]/(2h)";steps=[`f(${x+h})=${f.calc(x+h)}`,`f(${x-h})=${f.calc(x-h)}`]}
+    if(tipo==='seg'){r=(f.calc(x+h)-2*f.calc(x)+f.calc(x-h))/(h*h);form="f''(x) ≈ [f(x+h)-2f(x)+f(x-h)]/h²";steps=[`f(${x+h})=${f.calc(x+h)}`,`f(${x})=${f.calc(x)}`,`f(${x-h})=${f.calc(x-h)}`]}
+    htmlOut=`<div class="result-dashboard">${card('Resultado',r.toFixed(8))}${card('x',x)}${card('h',h)}</div>`+
+      formula(form)+
+      `<div class="steps">${steps.map(step).join('')}${step(`Resultado = <span class="ok">${r}</span>`)}</div>`;
+  }
+  document.getElementById('idOut').innerHTML=htmlOut;
+}
+desenharGrafico();
+</script>
+</body>
+</html>
