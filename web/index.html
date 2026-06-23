@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Métodos Numéricos - Visualização</title>
+  <style>
+    :root{--bg:#020617;--panel:#0f172a;--card:#111827;--soft:#1e293b;--text:#e5e7eb;--muted:#94a3b8;--accent:#38bdf8;--ok:#22c55e;--bad:#ef4444;--border:#334155}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#1e293b,#020617 55%);color:var(--text)}
+    header{padding:28px 18px;text-align:center;border-bottom:1px solid var(--border);background:rgba(2,6,23,.92);position:sticky;top:0;backdrop-filter:blur(10px);z-index:10} h1{margin:0;color:var(--accent)}
+    main{max-width:1180px;margin:auto;padding:22px}.grid{display:grid;grid-template-columns:340px 1fr;gap:18px}.card{background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(2,6,23,.98));border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:18px;box-shadow:0 10px 30px rgba(0,0,0,.28)}
+    label{display:block;margin-top:12px;color:var(--muted)} input,select,button,textarea{width:100%;border-radius:10px;border:1px solid var(--border);background:#020617;color:var(--text);padding:10px;margin-top:6px} button{background:linear-gradient(135deg,#0284c7,#22c55e);border:0;font-weight:bold;cursor:pointer}.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}.tabs button{width:auto;background:#1e293b;border:1px solid var(--border)}.tabs button.active{background:linear-gradient(135deg,#0284c7,#22c55e)}.section{display:none}.section.active{display:block}.out{white-space:pre-wrap;background:#020617;border:1px solid var(--border);border-radius:12px;padding:14px;min-height:260px;overflow:auto}.hint{color:var(--muted);font-size:13px;line-height:1.45}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:850px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header><h1>Sistema de Métodos Numéricos</h1><p>Visualização didática para exercícios, com modo escuro e resultados passo a passo.</p></header>
+<main>
+  <div class="tabs">
+    <button class="active" onclick="showTab('base')">Troca de Base</button><button onclick="showTab('erros')">Erros</button><button onclick="showTab('raizes')">Raízes</button><button onclick="showTab('interpolacao')">Interpolação</button><button onclick="showTab('matrizes')">Matrizes</button>
+  </div>
+  <section id="base" class="section active"><div class="grid"><div class="card"><h2>Troca de base</h2><label>Número</label><input id="baseNumber" value="1011.01"><div class="row"><div><label>Base origem</label><input id="baseFrom" type="number" value="2"></div><div><label>Base destino</label><input id="baseTo" type="number" value="10"></div></div><button onclick="convertBaseUI()">Converter</button><p class="hint">Aceita bases de 2 a 36 e parte fracionária.</p></div><div class="card"><h2>Resultado</h2><div id="baseOut" class="out"></div></div></div></section>
+  <section id="erros" class="section"><div class="grid"><div class="card"><h2>Erros</h2><label>Valor exato</label><input id="exact" value="3.14159"><label>Valor aproximado</label><input id="approx" value="3.14"><button onclick="errorsUI()">Calcular</button></div><div class="card"><h2>Resultado</h2><div id="errorsOut" class="out"></div></div></div></section>
+  <section id="raizes" class="section"><div class="grid"><div class="card"><h2>Raízes</h2><label>Função f(x)</label><input id="func" value="x^3 - x - 2"><label>Método</label><select id="rootMethod"><option value="bisection">Bisseção</option><option value="secant">Secantes</option><option value="newton">Newton</option></select><div class="row"><div><label>a/x0</label><input id="rootA" value="1"></div><div><label>b/x1</label><input id="rootB" value="2"></div></div><label>Tolerância</label><input id="tol" value="0.0001"><button onclick="rootsUI()">Calcular</button></div><div class="card"><h2>Resultado</h2><div id="rootsOut" class="out"></div></div></div></section>
+  <section id="interpolacao" class="section"><div class="grid"><div class="card"><h2>Interpolação de Lagrange</h2><label>Valores x</label><input id="xs" value="2,2.25,2.5,2.75"><label>Valores y</label><input id="ys" value="5.42,6.93,8.73,10.89"><label>x para calcular</label><input id="xEval" value="2.6"><button onclick="lagrangeUI()">Interpolar</button></div><div class="card"><h2>Resultado</h2><div id="interpOut" class="out"></div></div></div></section>
+  <section id="matrizes" class="section"><div class="card"><h2>Visualização de Projeto</h2><p class="hint">Coloque aqui prints, GIFs ou vídeo curto do sistema rodando.</p><textarea placeholder="Exemplo: ![Demonstração](docs/visualizacao.gif)"></textarea></div></section>
+</main>
+<script>
+const DIGITS='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+function showTab(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');event.target.classList.add('active')}
+function parseList(v){return v.split(',').map(x=>Number(x.trim().replace(',','.')))}
+function normalize(expr){return expr.replaceAll('^','**').replaceAll('sen','Math.sin').replaceAll('cos','Math.cos').replaceAll('tg','Math.tan').replaceAll('raiz','Math.sqrt').replaceAll('√','Math.sqrt').replace(/(\d)x/g,'$1*x')}
+function fFrom(expr){const e=normalize(expr);return x=>Function('x','return '+e.replace(/(?<!Math\.)\b(sin|cos|tan|sqrt|log|exp)\b/g,'Math.$1'))(x)}
+function toDecimal(num,base){let [intp,frac='']=num.toUpperCase().replace(',','.').split('.');let sign=intp.startsWith('-')?-1:1;intp=intp.replace(/^[-+]/,'');let total=0,steps=[];[...intp].reverse().forEach((ch,p)=>{let v=DIGITS.indexOf(ch);total+=v*Math.pow(base,p);steps.push(`${ch} × ${base}^${p} = ${v*Math.pow(base,p)}`)});[...frac].forEach((ch,i)=>{let v=DIGITS.indexOf(ch);let c=v/Math.pow(base,i+1);total+=c;steps.push(`${ch} × ${base}^-${i+1} = ${c}`)});return {value:sign*total,steps}}
+function fromDecimal(value,base){let sign=value<0?'-':'';value=Math.abs(value);let int=Math.floor(value), frac=value-int, ints=[],steps=[];if(int===0)ints=['0'];while(int>0){let r=int%base;ints.unshift(DIGITS[r]);steps.push(`divisão: quociente=${Math.floor(int/base)}, resto=${r}`);int=Math.floor(int/base)}let fr=[];for(let i=0;i<12 && frac>1e-14;i++){frac*=base;let d=Math.floor(frac);fr.push(DIGITS[d]);steps.push(`fração × ${base}: dígito=${d}`);frac-=d}return {text:sign+ints.join('')+(fr.length?'.'+fr.join(''):''),steps}}
+function convertBaseUI(){let a=toDecimal(document.getElementById('baseNumber').value,Number(baseFrom.value));let b=fromDecimal(a.value,Number(baseTo.value));baseOut.textContent=`Decimal: ${a.value}\nConvertido: ${b.text}\n\nPassos:\n${a.steps.concat(b.steps).join('\n')}`}
+function errorsUI(){let e=Number(exact.value),a=Number(approx.value),abs=Math.abs(e-a),rel=abs/Math.abs(e);errorsOut.textContent=`Erro absoluto = ${abs}\nErro relativo = ${rel}\nErro percentual = ${rel*100}%`}
+function rootsUI(){let f=fFrom(func.value), tol=Number(document.getElementById('tol').value), a=Number(rootA.value), b=Number(rootB.value), lines=[];if(rootMethod.value==='bisection'){for(let i=1;i<=60;i++){let m=(a+b)/2, fm=f(m);lines.push(`${i}: a=${a} b=${b} xm=${m} f(xm)=${fm}`);if(Math.abs(fm)<=tol||Math.abs(b-a)/2<=tol)break;if(f(a)*fm<0)b=m;else a=m}}else if(rootMethod.value==='secant'){let x0=a,x1=b;for(let i=1;i<=60;i++){let x2=(x0*f(x1)-x1*f(x0))/(f(x1)-f(x0));lines.push(`${i}: x0=${x0} x1=${x1} x2=${x2} erro=${Math.abs(x2-x1)}`);if(Math.abs(x2-x1)<=tol)break;x0=x1;x1=x2}}else{let x=a;for(let i=1;i<=60;i++){let h=1e-6,df=(f(x+h)-f(x-h))/(2*h),nx=x-f(x)/df;lines.push(`${i}: x=${x} x+1=${nx} erro=${Math.abs(nx-x)}`);if(Math.abs(nx-x)<=tol)break;x=nx}}rootsOut.textContent=lines.join('\n')}
+function lagrangeUI(){let X=parseList(xs.value),Y=parseList(ys.value),x=Number(xEval.value),total=0,lines=[];for(let i=0;i<X.length;i++){let L=1;for(let j=0;j<X.length;j++)if(i!==j)L*=((x-X[j])/(X[i]-X[j]));total+=Y[i]*L;lines.push(`L${i}=${L} | contribuição=${Y[i]*L}`)}interpOut.textContent=`P(${x}) = ${total}\n\n${lines.join('\n')}`}
+convertBaseUI();
+</script>
+</body>
+</html>
