@@ -15,6 +15,22 @@ O repositório reúne **duas implementações independentes**: uma aplicação w
 
 A proposta não é apenas encontrar uma resposta numérica, mas facilitar o entendimento de **como** ela foi obtida.
 
+## Demonstração interativa — experimente no navegador
+
+A versão web pode ser aberta diretamente no navegador para conhecer a interface e testar os cálculos, sem instalar bibliotecas ou executar um servidor.
+
+**▶️ [ABRIR DEMONSTRAÇÃO WEB DO PROJETO](https://htmlpreview.github.io/?https://github.com/JhonataFontoura/Metodos-numericos/blob/main/metodos_numericos_web_resultados_melhorados.html)**
+
+[![Abrir a demonstração web](https://img.shields.io/badge/%E2%96%B6%20Testar%20aplica%C3%A7%C3%A3o%20web-Abrir%20demonstra%C3%A7%C3%A3o-2563EB?style=for-the-badge&logo=googlechrome&logoColor=white)](https://htmlpreview.github.io/?https://github.com/JhonataFontoura/Metodos-numericos/blob/main/metodos_numericos_web_resultados_melhorados.html)
+
+**O que explorar na demonstração:**
+1. **Equações não lineares:** insira `x^3 - x - 2`, selecione Bisseção e acompanhe o gráfico e as iterações.
+2. **Sistemas lineares:** informe uma matriz e um vetor para acompanhar o resultado da resolução.
+3. **Interpolação:** experimente Lagrange ou Newton com pontos fornecidos.
+4. **Integração e derivação:** teste as regras numéricas disponíveis.
+
+> **Nota:** o link utiliza um visualizador externo para carregar o arquivo HTML do repositório; não é uma hospedagem própria nem um endereço oficial do GitHub Pages. Se o visualizador não funcionar, baixe o HTML e abra-o localmente. A gravação de demonstração enviada pelo autor ainda não está hospedada no repositório, portanto não foi incorporada como vídeo aqui.
+
 ## Funcionalidades
 
 | Área | Métodos e operações |
